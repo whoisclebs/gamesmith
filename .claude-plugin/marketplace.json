@@ -1,0 +1,17 @@
+{
+  "name": "gamesmith",
+  "owner": {
+    "name": "whoisclebs",
+    "url": "https://github.com/whoisclebs"
+  },
+  "metadata": {
+    "description": "Agent skills for building games end to end: design, prototyping, game feel, Roblox, Godot, Unity, web and Blender."
+  },
+  "plugins": [
+    {
+      "name": "gamesmith",
+      "source": "./",
+      "description": "Skills for building games end to end, from concept to launch, across Roblox, Godot, Unity, web and Blender."
+    }
+  ]
+}

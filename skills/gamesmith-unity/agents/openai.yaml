@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamesmith Unity"
+  short_description: "Build, fix and ship Unity 6 / 2022 LTS games in C#"
+  default_prompt: "Use $gamesmith-unity to inspect my Unity project, then implement the feature I describe with ScriptableObjects, cached components and the project's input system, and tell me the script paths, prefab setup, inspector wiring and test steps."

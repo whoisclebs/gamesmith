@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamesmith Godot"
+  short_description: "Build, fix and export Godot 4 games in typed GDScript"
+  default_prompt: "Use $gamesmith-godot to inspect my Godot project, then implement the feature I describe with typed GDScript, scenes, signals and Resources, and tell me the scene tree, script paths and test steps."

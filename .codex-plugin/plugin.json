@@ -1,0 +1,16 @@
+{
+  "name": "gamesmith",
+  "version": "0.1.0",
+  "description": "Skills for building games end to end: design docs, prototyping, game feel, balancing, playtesting, shipping, plus Roblox, Godot, Unity, web and Blender asset pipelines.",
+  "author": { "name": "whoisclebs", "url": "https://github.com/whoisclebs" },
+  "homepage": "https://github.com/whoisclebs/gamesmith",
+  "repository": "https://github.com/whoisclebs/gamesmith",
+  "license": "MIT",
+  "keywords": ["gamedev", "game-design", "roblox", "godot", "unity", "blender"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Gamesmith",
+    "shortDescription": "Build games end to end, from concept to launch",
+    "category": "Coding"
+  }
+}

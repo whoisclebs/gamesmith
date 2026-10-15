@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamesmith Roblox"
+  short_description: "Secure, testable Roblox games in Luau with Rojo and Studio MCP"
+  default_prompt: "Use $gamesmith-roblox to inspect this Roblox project, then build the feature I describe with server-authoritative Luau, file paths per realm, and a multi-client Studio test plan."

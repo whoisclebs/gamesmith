@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamesmith Blender"
+  short_description: "Build and export game-ready 3D assets with Blender and bpy"
+  default_prompt: "Use $gamesmith-blender to model a game-ready asset in Blender. Start with a brief (parts, proportions, poly budget), build and verify it numerically, then export and validate it for my target engine."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamesmith"
+  short_description: "Take a game from idea to release with gated stages"
+  default_prompt: "Help me turn my idea for a cozy fishing roguelite into a one-page pitch and a prototype plan."

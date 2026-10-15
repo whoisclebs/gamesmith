@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamesmith Web"
+  short_description: "Build and ship browser games with Vite, Phaser or Three.js"
+  default_prompt: "Use $gamesmith-web to build a playable browser game: pick the right framework, scaffold it with Vite and TypeScript, implement a fixed-timestep loop with input and a first playable slice, then give me run commands and test steps."

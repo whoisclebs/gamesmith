@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prototype</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; overflow: hidden; overscroll-behavior: none; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; user-select: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+'use strict';
+const W = 640, H = 360, STEP = 1 / 60, SPEED = 220;    // logical size, fixed step (s), px/s
+const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+let scale = 1, ox = 0, oy = 0, paused = false;
+
+function resize() {                                    // backing store = CSS size x dpr, letterboxed
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  scale = Math.min(canvas.width / W, canvas.height / H);
+  ox = (canvas.width - W * scale) / 2;
+  oy = (canvas.height - H * scale) / 2;
+}
+addEventListener('resize', resize);
+resize();
+
+function mulberry32(a) {                               // seeded RNG: same seed, same coins
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(12345);
+
+// ---- audio: created on first gesture (browsers block it before) ----
+let audio = null;
+function unlockAudio() {
+  audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+  if (audio.state === 'suspended') audio.resume();
+}
+function beep() {
+  if (!audio) return;
+  const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+  o.frequency.value = 660;
+  g.gain.setValueAtTime(0.1, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  o.connect(g).connect(audio.destination);
+  o.start(t); o.stop(t + 0.15);
+}
+
+// ---- input: keyboard + pointer (hold to steer toward the pointer) ----
+const keys = new Set();
+let target = null;
+function setTarget(e) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  target = { x: (e.clientX * dpr - ox) / scale, y: (e.clientY * dpr - oy) / scale };
+}
+addEventListener('keydown', (e) => {
+  if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+  keys.add(e.code);
+  if (e.code === 'KeyP' || e.code === 'Escape') paused = !paused;
+  unlockAudio();
+});
+addEventListener('keyup', (e) => keys.delete(e.code));
+canvas.addEventListener('pointerdown', (e) => { paused = false; unlockAudio(); setTarget(e); });
+canvas.addEventListener('pointermove', (e) => { if (e.buttons) setTarget(e); });
+addEventListener('pointerup', () => { target = null; });
+addEventListener('pointercancel', () => { target = null; });
+
+// ---- game state ----
+const player = { x: 100, y: 100, px: 100, py: 100, s: 24 };   // px/py = previous step, for interpolation
+const coin = { x: 0, y: 0, r: 9 };
+let score = 0;
+function placeCoin() { coin.x = 20 + rand() * (W - 40); coin.y = 20 + rand() * (H - 40); }
+placeCoin();
+
+function update(dt) {
+  player.px = player.x; player.py = player.y;
+  let dx = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0);
+  let dy = (keys.has('ArrowDown') || keys.has('KeyS') ? 1 : 0) - (keys.has('ArrowUp') || keys.has('KeyW') ? 1 : 0);
+  if (target) {
+    const tx = target.x - player.x - player.s / 2, ty = target.y - player.y - player.s / 2;
+    const d = Math.hypot(tx, ty);
+    if (d > 4) { dx = tx / d; dy = ty / d; }
+  }
+  const n = Math.max(1, Math.hypot(dx, dy));             // no faster diagonals
+  player.x = Math.min(W - player.s, Math.max(0, player.x + (dx / n) * SPEED * dt));
+  player.y = Math.min(H - player.s, Math.max(0, player.y + (dy / n) * SPEED * dt));
+  if (Math.hypot(player.x + player.s / 2 - coin.x, player.y + player.s / 2 - coin.y) < player.s / 2 + coin.r) {
+    score++; beep(); placeCoin();
+  }
+}
+
+function render(alpha) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);   // letterbox bars
+  ctx.setTransform(scale, 0, 0, scale, ox, oy);
+  ctx.fillStyle = '#1b1b2b'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3ddc97';
+  ctx.fillRect(player.px + (player.x - player.px) * alpha, player.py + (player.y - player.py) * alpha, player.s, player.s);
+  ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Score ' + score, 12, 28);
+  if (paused) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+    ctx.fillText('PAUSED - click or press P', W / 2, H / 2);
+  }
+}
+
+// ---- loop: fixed timestep + accumulator; pauses when the tab/window loses focus ----
+let last = performance.now(), acc = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const elapsed = Math.min(Math.max((now - last) / 1000, 0), 0.25);   // clamp huge gaps
+  last = now;                                          // updated even while paused: no catch-up burst
+  if (!paused) {
+    acc += elapsed;
+    while (acc >= STEP) { update(STEP); acc -= STEP; }
+  }
+  render(paused ? 1 : acc / STEP);
+}
+requestAnimationFrame(frame);
+addEventListener('blur', () => { paused = true; keys.clear(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { paused = true; keys.clear(); } });
+</script>
+</body>
+</html>
